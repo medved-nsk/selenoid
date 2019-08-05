@@ -28,6 +28,7 @@ type Environment struct {
 	LogOutputDir         string
 	SaveAllLogs          bool
 	Privileged           bool
+	KubeContext			 string
 }
 
 const (

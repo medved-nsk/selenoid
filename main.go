@@ -38,6 +38,7 @@ var (
 	disableQueue             bool
 	enableFileUpload         bool
 	listen                   string
+	kubeContext	             string
 	timeout                  time.Duration
 	maxTimeout               time.Duration
 	newSessionAttemptTimeout time.Duration
@@ -78,6 +79,7 @@ func init() {
 	flag.StringVar(&listen, "listen", ":4444", "Network address to accept connections")
 	flag.StringVar(&confPath, "conf", "config/browsers.json", "Browsers configuration file")
 	flag.StringVar(&logConfPath, "log-conf", "", "Container logging configuration file")
+	flag.StringVar(&kubeContext, "kube-context", "", "Locally configured kubernetes context")
 	flag.IntVar(&limit, "limit", 5, "Simultaneous container runs")
 	flag.IntVar(&retryCount, "retry-count", 1, "New session attempts retry count")
 	flag.DurationVar(&timeout, "timeout", 60*time.Second, "Session idle timeout in time.Duration format")
@@ -125,7 +127,7 @@ func init() {
 	})
 	inDocker := false
 	_, err = os.Stat("/.dockerenv")
-	if err == nil {
+	if err == nil && kubeContext == "" {
 		inDocker = true
 	}
 
@@ -170,7 +172,9 @@ func init() {
 		LogOutputDir:         logOutputDir,
 		SaveAllLogs:          saveAllLogs,
 		Privileged:           !disablePrivileged,
+		kubeContext:          kubeContext,
 	}
+	// XXX sync
 	if disableDocker {
 		manager = &service.DefaultManager{Environment: &environment, Config: conf}
 		if logOutputDir != "" && captureDriverLogs {
